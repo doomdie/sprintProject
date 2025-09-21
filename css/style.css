@@ -1,0 +1,41 @@
+.hi table {
+    margin:auto;
+}
+
+.hi table td {
+    width: 50px; /* Adjust this value as needed */
+    height: 50px; /* This should be the same as the width for a square */
+    line-height: 50px; /* Vertically centers the content */
+    text-align: center; /* Horizontally centers the content */
+    box-sizing: border-box; /* This ensures padding and borders are included in the element's total width and height. */
+    border: 1px solid rgb(250, 25, 25); /* A border helps visualize the square shape */
+  }
+  body {
+    background-color: black;
+	text-align: center;
+	color: lightgray;
+    font-family: Arial, Helvetica, sans-serif;
+    
+}
+
+.normal {
+    background-color: rgb(179, 74, 74);
+}
+.one{
+    background-color: rgb(179, 74, 74);
+}
+.two {
+    background-color: rgb(179, 74, 74);
+}
+.hidden span {
+    display:none;
+}
+.hah {
+    background-color:blue
+}
+.blow {
+    background-color:blueviolet
+}
+.mine {
+     background-color: rgb(179, 74, 74);
+}
