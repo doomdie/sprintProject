@@ -1,15 +1,45 @@
+
+.smiley {
+    display: block;
+    margin: auto;
+    border-color:red;
+}
+.mineCount{
+    background-color:red;
+}
+.lifecounter {
+    background-color:rgb(0, 255, 0);
+    color:purple
+}
+.lifecounter, .mineCount {
+    display: inline-block;
+    margin-right: 20px; /* Optional: adds space between them */
+}
+
 .hi table {
     margin:auto;
+    table-layout: fixed;
+    width:500px;
+    height:500px;
+    
+   
 }
 
 .hi table td {
-    width: 50px; /* Adjust this value as needed */
-    height: 50px; /* This should be the same as the width for a square */
-    line-height: 50px; /* Vertically centers the content */
-    text-align: center; /* Horizontally centers the content */
-    box-sizing: border-box; /* This ensures padding and borders are included in the element's total width and height. */
     border: 1px solid rgb(250, 25, 25); /* A border helps visualize the square shape */
+    padding: 10px;
+    table-layout: fixed;
+    position: relative;
+
   }
+.hi table td img {
+    width: 100%;
+    height: 100%;
+    height: fit-content;
+    position:absolute;
+    transform: translate(-50%, -50%);
+   
+}
   body {
     background-color: black;
 	text-align: center;
@@ -18,24 +48,101 @@
     
 }
 
-.normal {
-    background-color: rgb(179, 74, 74);
-}
+
+
 .one{
-    background-color: rgb(179, 74, 74);
+    background-color: rgba(236, 197, 197, 0.425);
+    
 }
-.two {
-    background-color: rgb(179, 74, 74);
-}
+
 .hidden span {
     display:none;
 }
 .hah {
     background-color:blue
 }
-.blow {
-    background-color:blueviolet
+.mine.blow {
+    background-color:rgb(123, 0, 238)
 }
 .mine {
      background-color: rgb(179, 74, 74);
+     transition: background-color 0.5s ease-in-out;
+}
+.restartcontainer {
+    display:block;
+    background-color: bisque;
+    width: 200px;
+    margin:  50px auto;
+    color:brown;
+    
+}
+.hide{
+    display:none;
+}
+.smiley {
+    background-color:transparent;
+    color: yellow;
+}
+.characters-img{
+	width: 45px;
+	height: 45px;
+}
+.tile-img{
+    z-index: 2;
+}
+.true-form{
+    z-index: 1;
+}
+.restarttext{
+    display:block;
+}
+.difficulty-container {
+    display: inline-block;
+    width: 90px;
+    height: 100px;
+    margin: auto;
+}
+.difficulty-container h4 {
+   background-color: red;
+   display: block;
+}
+.difficulty-container button{
+    background-color: rgb(43, 213, 255);
+    width: 30px;
+    height: 30x;
+    font-size: 18px;
+    border-color: blueviolet;
+    
+     
+}
+
+.gamenScore{
+    display: grid;
+    width: 500px;
+    height: 500px;
+    margin: auto;
+     grid-template-columns: 1fr 1fr;
+     gap: 20px
+}
+
+.hints {
+    height: 50px;
+}
+.statsBoard h2 {
+    margin-bottom: 100px;
+    background-color: green;
+    border-color: lightgreen 10px;
+}
+.hints button{
+     background-color: transparent;
+     border: none;
+     height: 50px;
+     width: 50px;
+}
+.hintUI img {
+    height:fit-content;
+    width: 50px;
+    height: 50px;
+    background-color: transparent;
+    
 }
