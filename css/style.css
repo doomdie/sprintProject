@@ -4,35 +4,45 @@
     margin: auto;
     border-color:red;
 }
-.mineCount{
+.mine-count{
     background-color:red;
+   
 }
-.lifecounter {
+.life-counter {
     background-color:rgb(0, 255, 0);
-    color:purple
+    color:purple;
+    border-color: red;
+    
 }
-.lifecounter, .mineCount {
+.life-counter, .mark-count {
     display: inline-block;
+    border: 5px solid;
     margin-right: 20px; /* Optional: adds space between them */
+    border-color: red;
 }
-
-.hi table {
+.game-board {
+   grid-column: 1;
+}
+.game-board table {
     margin:auto;
     table-layout: fixed;
     width:500px;
     height:500px;
+    justify-content:center;
+     border: 1px solid;
+    
     
    
 }
 
-.hi table td {
+.game-board table td {
     border: 1px solid rgb(250, 25, 25); /* A border helps visualize the square shape */
     padding: 10px;
     table-layout: fixed;
     position: relative;
 
   }
-.hi table td img {
+.game-board table td img {
     width: 100%;
     height: 100%;
     height: fit-content;
@@ -68,7 +78,7 @@
      background-color: rgb(179, 74, 74);
      transition: background-color 0.5s ease-in-out;
 }
-.restartcontainer {
+.restart-container {
     display:block;
     background-color: bisque;
     width: 200px;
@@ -93,14 +103,15 @@
 .true-form{
     z-index: 1;
 }
-.restarttext{
+.restart-text{
     display:block;
 }
-.difficulty-container {
+.difficulty-container, .mode {
     display: inline-block;
     width: 90px;
     height: 100px;
     margin: auto;
+    grid-column: 1;
 }
 .difficulty-container h4 {
    background-color: red;
@@ -108,27 +119,30 @@
 }
 .difficulty-container button{
     background-color: rgb(43, 213, 255);
-    width: 30px;
-    height: 30x;
+    width: 40ppx;
+    height: 40x;
     font-size: 18px;
     border-color: blueviolet;
     
      
 }
 
-.gamenScore{
+.gamen-score{
     display: grid;
     width: 500px;
     height: 500px;
     margin: auto;
-     grid-template-columns: 1fr 1fr;
-     gap: 20px
+     grid-template-columns: 1fr 1fr 1fr;
+     gap: 20px;
+    
 }
 
 .hints {
+    grid-column: 1;
     height: 50px;
+     border: 1px solid;
 }
-.statsBoard h2 {
+.stats-board h2 {
     margin-bottom: 100px;
     background-color: green;
     border-color: lightgreen 10px;
@@ -139,10 +153,16 @@
      height: 50px;
      width: 50px;
 }
-.hintUI img {
+.hint-ui img {
     height:fit-content;
     width: 50px;
     height: 50px;
     background-color: transparent;
     
+}
+.timer {
+    width: 400px;
+}
+.mode{
+    height:20px;
 }

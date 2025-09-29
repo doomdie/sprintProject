@@ -1,9 +1,4 @@
-//What to do about new versions of the project for git?
-//Is my css styling and names fine?
-//Is lines 96 to yknow a right way to do the brackets
-//whats the sorting command again? Alt shift f?? I keep forgetting UGHH!!!!
-
-//I put the gameover check EVERYWHERE but it doesn't feel right.
+//What to do about new versions of the project for gi
 //ok finish this hint shit and then clean up the code and then you can replacde all the stuff you made code for with its functions
 
 //Also to explain my reasoning for having the table render 2 images in one cell it's just something I thought would be easier to do. Might slightly regret working like this but whatever.
@@ -16,34 +11,54 @@
 //OK YAIR SO FOR THE SCORE STUFF YOU CHECK IF ANYONE HAS WON YET. IF THEY HAVE THE HIGHEST SCORE WONT JUST BE OF MOST CLICKS ETC BUT WILL ALSO BE ABOUT TIME.
 const gMine = '&#169;'
 const gFloor = '&#9829;'
-const TILE_IMG = '<img src="img/TileUnknown.png" class = "cellimage">'
-const PRESSED_IMG = '<img src="img/TileEmpty.png" class = "cellimage">'
-const BOOM_IMG = '<img src="img/TileExploded.png" class = "cellimage">'
-const TILE_FLAG = '<img src="img/TileFlag.png" class = "cellimage">'
-const LIGHT_BULB_OFF = '<img src="img/Hint.png" class = "hintUI">'
-const TILE_WARNING = '<img src="img/TileWarning.png" class = "cellimage">'
-//Is it normal to have this amount of global variables..?
-//Still not fully sure how the source works but whatever..
-//Remember to fix the victory screen 
-//BUG: The light bulbs both disappear if you click on another while another one is in effect
+const TILE_IMG = '<img src="img/TileUnknown.png" class = "cell-image">'
+const PRESSED_IMG = '<img src="img/TileEmpty.png" class = "cell-image">'
+const BOOM_IMG = '<img src="img/TileExploded.png" class = "cell-image">'
+const TILE_FLAG = '<img src="img/TileFlag.png" class = "cell-image">'
+const LIGHT_BULB_OFF = '<img src="img/Hint.png" class = "hint-ui">'
+const TILE_WARNING = '<img src="img/TileWarning.png" class = "cell-image">'
+
+//Correct all the misleading/ vague names
+//The mine should maybe be intergrated with hint code
+//Check every useless piece of code
+//Restructure all the codeeeee especially the image stuff
+
+//Should i limit the amount of flags
+//ASK IN SLACK: IS TEXTCONTENT OR INNERTEXT PREFFERED???
+//How should the ordering of functions be again
+//Should the board render and the game start if like, a safety click is clicked before it even is
+//In megaclick should it be able to reveal the *Entire* board?
+//Should i be able to click and unlclick the mines
+//For the recalculator does it need to be  able to be pressed multiple times?
+//you added full scan, fixed the light bulbs and fixed the naming conventions of most of the stuff
+//FOR THE HINT BUTTON: IS IT OK TO LIKE, RE-USE CODE THAT I USED FOR THE HINT BUTTON..? 
+//Do megahint andd then clean the names up to make em less vague and clean your table name ffs
+//Change the hard written text to variables.. Maybe?
+//ask if you can have basically the entire lesson be like, about ui
+//Should the ui in the style css reflect its position  in the page? Like its placement in the code should reflect that
+//i designed the way the disasppearing objects work is that they basically don't interfere if you actually click near that area- Is this fine?
 var mineArray
 var gTimedOut
 var gBoard
 var gFirstClick
 var gExemptClick
 var gLives
-var gMines
+var gSafeClicks
+var gUndoArray
 var gIntervalId
 var gLightBulb
+var gMegaHintArray
+var gRecalculationArray
+var gManualMode
 
-
-const gSmileyState = document.querySelector(".smiley")
+const gSmileyState = document.querySelector(".smiley") //Not good just having stuff out of code (functions)
 gLevel = {
     SIZE: 4,
     MINES: 2,
-    BEATENONCE: false
-}
+    SAFECLICKS: 3
 
+}
+//How do i implement this into code
 
 gGame = {
     isOn: false,
@@ -51,40 +66,58 @@ gGame = {
     revealedCount: 0,
     markedCount: 0,
     secsPassed: 0,
-    hintsUsed: 0
+    hintsUsed: 0,
+    megaHintMode: false,
+    gManualMode: false
 }
-//Make a grid table showing these off but the timer gotta be special
+//What about type casing in the ggame thing? SHoudl everything in it also start with g
 
 function onInit() {
+    
+    gLevel.MINES = 2
+    gGame.gManualMode = false
+    console.log(gLevel.MINES)
+    
+    gMegaHintArray = []
+    mineArray = []
+    console.log(mineArray)
+    gRecalculationArray = []
+    const boardScoreFormat = getFormatedTimePassed(localStorage.getItem(`board${gLevel.SIZE}score`))
+    uiUpdater(".best-score span", boardScoreFormat)
     gLightBulb = false
+    gUndoArray = []
     gGame.isVictory = false
     gHintUnitArray = []
     gGame.markedCount = 0
     gGame.revealedCount = 0
+    gSafeClicks = gLevel.SAFECLICKS
     clearInterval(gIntervalId);
-    uiUpdater(".timer span","00 : 000")
-    uiUpdater(".mineAmount span", gLevel.MINES)
-     uiUpdater(".revealedCount span", gGame.revealedCount)
-    
+    uiUpdater(".timer span", "00 : 000")
+    uiUpdater(".mine-amount span", gLevel.MINES)
+    uiUpdater(".revealed-count span", gGame.revealedCount)
+    uiUpdater(".safe-click span", gSafeClicks)
     gGame.isOn = true
     gSmileyState.innerText = "😃"
     gLives = 3
-    const elLives = document.querySelector('.lifecounter span')
+    const elLives = document.querySelector('.life-counter span')
     elLives.innerText = gLives
     gFirstClick = true
+    gBoard = []
     gBoard = buildBoard()
     renderBoard(gBoard)
-     var sizeForUI = `/${(gLevel.SIZE * gLevel.SIZE) - gLevel.MINES}`
-     
-    uiUpdater(".revealedCount span:nth-child(2)", sizeForUI) 
-    hideElement(".restartcontainer")
-    //How am i supposed to call css elements and such.. Or like.. html classses.
-   
-    
+    var sizeForUI = `/${(gLevel.SIZE * gLevel.SIZE) - gLevel.MINES}`
+
+    uiUpdater(".revealed-count span:nth-child(2)", sizeForUI)
+    uiUpdater(".mode ", "NORMAL")
+    hideElement(".restart-container")
+    hideElement(".undo-button")
+    hideElement(".mine-exterminator")
+
+
 }
 
 
-function buildBoard() { 
+function buildBoard() {
     console.log(gLevel.SIZE)
     const board = createBoard(gLevel.SIZE)
     for (var i = 0; i < board.length; i++) {
@@ -94,12 +127,13 @@ function buildBoard() {
                 isRevealed: false,
                 isMine: false,
                 isMarked: false,
-                isBlow: false
+                isBlow: false,
+                isRevealedByHint: false
             }
         }
     }
 
-    
+
     return board
 
 }
@@ -114,13 +148,13 @@ function renderBoard(board) {
         for (var j = 0; j < board.length; j++) {
 
             const currCell = board[i][j]
-         
+
             var cellClass = getClassName({ i: i, j: j })
 
             cellClass += ' normal'
-           
 
-            strHTML += `<td  class = "unit ${cellClass}" onclick="onCellClicked(this,${i},${j})"> <span>${TILE_IMG}</span>  </td>`
+
+            strHTML += `<td  class = "unit ${cellClass}" onmousedown="handleCellClick(event,this,${i},${j})"> <span>${TILE_IMG}</span>  </td>`
 
 
         }
@@ -128,15 +162,24 @@ function renderBoard(board) {
     }
     strHTML += '</tbody></table>'
 
-    const elContainer = document.querySelector(".hi")
+    const elContainer = document.querySelector(".game-board")
     elContainer.innerHTML = strHTML
 }
 
 //Second one for testing how to actually do this.. I think I should render all the board, make it all invisible and only set visibility on the path that is clicked
 function renderBoardUnits(board, elCell) {
+    gRecalculationArray = []
     startTimer()
-    mineArray = []
-    for (var i = 0; i < gLevel.MINES; i++) {
+    // showElement()
+    hideElement(".manual-mines")
+    showElement(".undo-button")
+    showElement(".mine-exterminator")
+    console.log(mineArray)
+    console.log(gGame.gManualMode)
+    // mineArray = []
+    
+    if (gGame.gManualMode === false) {
+        for (var i = 0; i < gLevel.MINES; i++) {
         var emptySpot = getRandEmptyLocation(gBoard)
         gBoard[emptySpot.i][emptySpot.j].isMine = true
         mineArray.push({ i: emptySpot.i, j: emptySpot.j })
@@ -144,7 +187,8 @@ function renderBoardUnits(board, elCell) {
         if (gBoard[emptySpot.i][emptySpot.j].minesAroundCount > 2) alert("hi")
 
     }
-    setMinesNegsCountTwo(gBoard)
+}
+    setMinesNextToCount(gBoard)
     var strHTML = '<table><tbody>'
     for (var i = 0; i < board.length; i++) {
         strHTML += '<tr>'
@@ -157,8 +201,10 @@ function renderBoardUnits(board, elCell) {
             if (currCell.isMine === true) { cellClass += ' mine'; picName = BOOM_IMG }
             else if (currCell.minesAroundCount === 0) { cellClass += ' one'; picName = PRESSED_IMG }
             else (cellClass += ' one')
+            
             if (currCell.minesAroundCount > 0) {
-                picName = `<img src="img/Tile${currCell.minesAroundCount}.png" class = "cellimage">`
+                picName = `<img src="img/Tile${currCell.minesAroundCount}.png" class = "cell-image">`
+                gRecalculationArray.push({i : i, j : j})
             }
             console.log(picName)
             strHTML += `<td  class  = "unit ${cellClass}" onmousedown = "handleCellClick(event, this, ${i},${j})"><span class ="true-form"> ${picName}</span><span class = "tile-img">${TILE_IMG}</span></td>`
@@ -170,12 +216,12 @@ function renderBoardUnits(board, elCell) {
     strHTML += '</tbody></table>'
 
 
-    const elContainer = document.querySelector(".hi")
+    const elContainer = document.querySelector(".game-board")
     elContainer.innerHTML = strHTML
     var cellClass = getClassName(elCell)
     const cellSelector = '.' + cellClass // '.cell-3-5'
     const elHell = document.querySelector(cellSelector)
-
+    
 
 }
 
@@ -186,56 +232,66 @@ function renderBoardUnits(board, elCell) {
 
 
 function onCellClicked(elCell, i, j) {
-   
+    
+    if (gGame.gManualMode === true && mineArray.length < 1) return
+    // else if (gGame.gManualMode === true) {gGame.gManualMode = false}
+    
     if (elCell.classList.contains("blow")) return
-    var cellClass = getClassName({ i: i, j: j })
-
-    if (gFirstClick == true) {
+    if (gFirstClick === true) {
         gExemptClick = { i: i, j: j }
         renderBoardUnits(gBoard, gExemptClick)
         gFirstClick = false
-        
+    }
+    if (gGame.gManualMode === true) {gGame.gManualMode = false;  mineArray = []
+         uiUpdater(".mode ", "NORMAL")}
+    console.log(gBoard)
+     if (gGame.megaHintMode === true) {
+        gMegaHintArray.push({i : i, j : j})
+        var elCell = SelectOnlyElement(i, j)
+        var elCellImage = elCell.querySelector(".tile-img img")
+        console.log(elCellImage)
+        elCellImage.src = "img/TileMega.png"
+        console.log(gMegaHintArray.length)
+        if (gMegaHintArray.length >= 2)  { megaHintReveal(gMegaHintArray) }
+            return
     }
 
-     
-    if (gLightBulb == false ) {
-
-    
-    if (gBoard[i][j].isMine == true) { lossState(elCell, i, j); return }
-    } //Line 188 to 210 are the qutoed stufff
-        expandReveal(gBoard, elCell, i, j) 
-        gameOverCheck()
-         uiUpdater(".revealedCount span", gGame.revealedCount)
-
-
+    if (gLightBulb === false) {
+        if (gBoard[i][j].isMine === true) { loseLife(elCell, i, j); return }
     }
+    expandReveal(gBoard, elCell, i, j)
+    gameOverCheck()
+    uiUpdater(".revealed-count span", gGame.revealedCount)
+}
+
+
+
+
+
+
+function onCellMarked(elCell, i, j) {
    
-
-
-
-
-
-function onCellMarked(elCell, i, j) { 
-    //    if (elCell.classList.contains("flagged")) 
-
-    if (gBoard[i][j].isRevealed == true) return
-    if (gBoard[i][j].isBlow == true) return
+    if (gGame.gManualMode === true) { 
+        manualPlacement(elCell, i, j)
+         return}
+    if (gBoard[i][j].isRevealed === true) return
+    if (gBoard[i][j].isBlow === true) return
     checkMines()
-    console.log(gBoard[i][j])
 
-    if (gBoard[i][j].isMarked == true) {
+
+    if (gBoard[i][j].isMarked === true) {
         const cellSelector = '.' + cellClass // '.cell-3-5'
         const elAllCell = document.querySelector(cellSelector)
         var trueForm = elCell.querySelector(".tile-img img")
-        console.log(trueForm)
+       
 
         if (trueForm) {
             trueForm.src = 'img/TileUnknown.png'
             gBoard[i][j].isMarked = false
             gGame.markedCount--
-            uiUpdater(".markCount span", gGame.markedCount)
-            
-           
+            uiUpdater(".mark-count span", gGame.markedCount)
+
+
             return
         }
     }
@@ -250,7 +306,7 @@ function onCellMarked(elCell, i, j) {
         trueForm.src = 'img/TileFlag.png'
         gBoard[i][j].isMarked = true
         gGame.markedCount++
-        uiUpdater(".markCount span", gGame.markedCount)
+        uiUpdater(".mark-count span", gGame.markedCount)
         gameOverCheck()
 
     }
@@ -264,63 +320,77 @@ function checkMines() { //This is just very debugging stuff, won't be in the fin
 
 
         var mineCell = gBoard[mineArray[i].i][mineArray[i].j]
-        if (mineCell.isMarked == true) flaggedMines++
+        if (mineCell.isMarked === true) flaggedMines++
 
 
     }
-    
-   
+
+
 
 }
 
 
 
 
-function expandReveal(board, elCell, i, j) { 
+function expandReveal(board, elCell, i, j) {
+
     var cellClass = getClassName({ i: i, j: j })
     var cellSelector = '.' + cellClass // '.cell-3-5'
-    var elHell = document.querySelector(cellSelector)
+    var elSurroundCell = document.querySelector(cellSelector)
     var hintArray = []
-     whaty = elHell.querySelector(".tile-img img")
-    if (gBoard[i][j].minesAroundCount > 0 && gLightBulb == false) { 
+    gUndoArray = []
+    var elTileReveal = elSurroundCell.querySelector(".tile-img img")
+    if (gBoard[i][j].minesAroundCount > 0 && gLightBulb === false) {
         gGame.revealedCount++
         gBoard[i][j].isRevealed = true
-        whaty.src = "img/TileNone.png"
+        elTileReveal.src = "img/TileNone.png"
+        gUndoArray.push({i: i, j: j})
         return
     }
-   
-    console.log(whaty)
+    var emptySpotArray = []
+    emptySpotArray.push({ i: i, j: j })
 
 
 
 
-    for (var io = -1; io <= 1; io++) {
-        for (var jo = -1; jo <= 1; jo++) {
-            var cellI = io + i
-            var cellJ = jo + j
+    for (var c = 0; c < emptySpotArray.length; c++) {
+        for (var io = -1; io <= 1; io++) {
+            for (var jo = -1; jo <= 1; jo++) {
+
+               var ie = emptySpotArray[c].i
+              var  je = emptySpotArray[c].j
+                var cellI = io + ie
+                var cellJ = jo + je
+
+                if (cellI > board.length - 1 || cellI < 0 || cellJ > board.length - 1 || cellJ < 0) continue
+                var currCell = gBoard[cellI][cellJ]
+
+                var cellClass = getClassName({ i: cellI, j: cellJ })
+                var cellSelector = '.' + cellClass // '.cell-3-5'
+                var elSurroundCell = document.querySelector(cellSelector)
+                var elTileReveal = elSurroundCell.querySelector(".tile-img img")
+                if (elTileReveal && currCell.isRevealed === false) {
+                    if (currCell.isMine === true && gLightBulb === false) continue
+                    if (currCell.isMarked === true) gGame.markedCount--
+                    if (gLightBulb === true) {hintArray.push({ i: cellI, j: cellJ }); currCell.isRevealedByHint = true}
+                    elTileReveal.src = 'img/TileNone.png'
+                    if (gLightBulb === false) { currCell.isRevealed = true; gGame.revealedCount++; gUndoArray.push({i: cellI, j: cellJ}) }
+                    if ((currCell.minesAroundCount === 0) && gLightBulb === false) { emptySpotArray.push({ i: cellI, j: cellJ }) }
+                }
 
 
-            if (cellI > board.length - 1 || cellI < 0 || cellJ > board.length - 1 || cellJ < 0) continue
-            var currCell = gBoard[cellI][cellJ]
-            var cellClass = getClassName({ i: cellI, j: cellJ })
-            var cellSelector = '.' + cellClass // '.cell-3-5'
-            var elSurroundCell = document.querySelector(cellSelector)
-            var elTileReveal = elSurroundCell.querySelector(".tile-img img")
-            if (elHell && currCell.isRevealed == false) {
-                if (currCell.isMine == true && gLightBulb == false) continue
-                hintArray.push({i : cellI, j : cellJ})
-                elTileReveal.src = 'img/TileNone.png'
-                if (gLightBulb == false) { currCell.isRevealed = true; gGame.revealedCount++}
+
             }
 
-   
-
         }
-        
     }
-    if (gLightBulb == true) { setTimeout(() => { hintRemover(hintArray)}, 5000)}
-     if (gLightBulb == true) gLightBulb = false
+    if (gLightBulb === true) { setTimeout(() => { hintRemover(hintArray) }, 5000) }
+    bulbRemoval()
+    if (gLightBulb === true) gLightBulb = false
+
+    uiUpdater(".mark-count span", gGame.markedCount)
     gameOverCheck()
+    emptySpotArray = []
 
 }
 function getClassName(position) {
@@ -344,7 +414,7 @@ function countNeighborMines(board, row, col) {
     }
     return mineCount
 }
-function setMinesNegsCountTwo(board) { //Can just use the global variable for board
+function setMinesNextToCount(board) { //Can just use the global variable for board
     const rows = board.length;
     const cols = board[0].length;
 
@@ -356,43 +426,27 @@ function setMinesNegsCountTwo(board) { //Can just use the global variable for bo
         }
     }
 }
-function lossState(elCell, i, j) {
-    if (gGame.isOn == false) return
+function loseLife(elCell, i, j) {
+    if (gGame.isOn === false) return
     gLives -= 1
 
-    uiUpdater(".lifecounter span", gLives)
-    const rows = gBoard.length;
-    const cols = gBoard[0].length;
-
+    uiUpdater(".life-counter span", gLives)
     if (gLives > 0) {
         replaceImage(elCell, i, j, TILE_WARNING)
         gBoard[i][j].isBlow = true
         gTimedOut = setTimeout(() => {
-            replaceImage(elCell, i, j, TILE_IMG)
-    
-            gBoard[i][j].isBlow = false
             console.log(elCell)
+            if (gBoard[i][j].isMine == true) {
+            replaceImage(elCell, i, j, TILE_IMG)
+
+            gBoard[i][j].isBlow = false
+            }
+
         }, 3000)
         return
     }
-    //Instead, it calls for the score checker which does this
-    var score = scoreCalculator()
-    for (var i = 0; i < rows; i++) {
-        for (var j = 0; j < cols; j++) {
-            var revealAll = selector(i, j, ".tile-img")
-            if (revealAll) {
-                revealAll.remove()
-                if (revealAll.classList.contains("mine")) replaceImage(elAllCell, i, j, BOOM_IMG)
-            }
-        }
-    }
-
-    if (gTimedOut) clearTimeout(gTimedOut)
-    clearInterval(gIntervalId);
-    showElement(".restartcontainer")
-    gSmileyState.innerText = "🤯"
-    gGame.isOn = false
-    scoreChecker(score)
+    gameOverLossState(i, j)
+   
 }
 
 function hideElement(selector) {
@@ -410,8 +464,8 @@ function restartGame() {
 function setDifficulty(boardSize, mineAmount) {
     gLevel.SIZE = boardSize
     gLevel.MINES = mineAmount
-    gLevel.BEATENONCE = localStorage.getItem(`beatenOnce${gLevel.SIZE}`)
-    console.log(gLevel)
+
+
 
     onInit()
 }
@@ -443,19 +497,24 @@ function renderCell(location, value) {
 
 
 
-function getClassName(position) {
+function getClassName(position) { //Correct all the misleading names
     return `cell-${position.i}-${position.j}`
 }
 
 
 
 function handleCellClick(event, cell, i, j) {
-     uiUpdater(".revealedCount span", gGame.revealedCount)
-    if (gBoard[i][j].isRevealed == true) return
+    console.log(gBoard)
+    uiUpdater(".revealed-count span", gGame.revealedCount)
+    
+    if (gGame.gManualMode == false) {
+    if (gBoard[i][j].isRevealed === true) return
     if (cell.classList.contains("blow")) return
-    if ((gBoard[i][j].isMarked == true) && (event.button !== 1)) return
-    if (gGame.isOn == false) return
-    if (event.button === 1) { //This doesn't bring up the context menu which makes flagging less distracting. Setting up a disabler like I tried here would take too much work.
+    if ((gBoard[i][j].isMarked === true) && (event.button !== 2)) return
+    if (gGame.isOn === false) return
+    }
+   
+    if (event.button === 2) { //This doesn't bring up the context menu which makes flagging less distracting. Setting up a disabler like I tried here would take too much work.
         event.preventDefault();
         onCellMarked(cell, i, j)
     }
@@ -467,7 +526,7 @@ function replaceImage(cell, i, j, replacer) {
     var replacer = sourceFinder(replacer)
     var trueForm = selector(i, j, ".tile-img img")
     if (trueForm) {
-        console.log(trueForm)
+
         trueForm.src = replacer
     }
 }
@@ -477,7 +536,7 @@ function sourceFinder(imagetoCut) {
     const src = imagetoCut.slice(startIndex, endIndex)
     return src
 }
-function selector(i, j, stringtoselect) { //Is this like, ideal?
+function selector(i, j, stringtoselect) {  //Find out how to specifically call all functions with this name
 
 
     var cellClass = getClassName({ i: i, j: j })
@@ -489,31 +548,40 @@ function selector(i, j, stringtoselect) { //Is this like, ideal?
 
 
 }
+function SelectOnlyElement(i, j) {
+
+    var cellClass = getClassName({ i: i, j: j })
+    const cellSelector = '.' + cellClass
+    const elAllCell = document.querySelector(cellSelector)
+    return elAllCell
+}
 function victoryScreen() //Ask in general should i put these in util? Or like.. since theyre so specific.. I dont know!!! Ughhh
 {
-    console.log(gBoard)
+
     if (gTimedOut) clearTimeout(gTimedOut)
     gGame.isOn = false
-    showElement(".restartcontainer")
-    var restartContainerText = document.querySelector(".restarttext")
+    showElement(".restart-container")
+    var restartContainerText = document.querySelector(".restart-text")
     restartContainerText.innerText = "YOU WON!!!"
     clearInterval(gIntervalId);
     gGame.isVictory = true
-    scoreChecker()
+    var score = actualScoreCalculator()
+    scoreChecker(score)
+
+
 
 }
 function gameOverCheck() {
 
-    var spoopy = 0
 
     for (var i = 0; i < gBoard.length; i++) {
         for (var j = 0; j < gBoard[0].length; j++) {
-            if (gBoard[i][j].isMine == false) {
-                if (gBoard[i][j].isRevealed == false) return
+            if (gBoard[i][j].isMine === false) {
+                if (gBoard[i][j].isRevealed === false) return
             }
-            if (gBoard[i][j].isMine == true) {
+            if (gBoard[i][j].isMine === true) {
 
-                if (gBoard[i][j].isMarked == false) return
+                if (gBoard[i][j].isMarked === false) return
             }
 
 
@@ -521,93 +589,276 @@ function gameOverCheck() {
 
 
     }
-     
+
     victoryScreen()
 }
 function startTimer() {
-  const elTimer = document.querySelector(".timer span");
-  const startTime = Date.now();
+    const elTimer = document.querySelector(".timer span");
+    const startTime = Date.now();
 
-  gIntervalId = setInterval(() => {
-    const timeDiff = Date.now() - startTime;
-    const timePassed = getFormatedTimePassed(timeDiff);
-    elTimer.innerText = timePassed;
-  }, 10);
+    gIntervalId = setInterval(() => {
+        const timeDiff = Date.now() - startTime;
+        const timePassed = getFormatedTimePassed(timeDiff);
+        elTimer.innerText = timePassed;
+    }, 10);
 }
 
 
 
-function hintPress(thos){ //What should I call something like this in-code?
-   
-    if (gLightBulb == true) {
-         if (!thos.classList.contains("REMOVAL")) return
-        var Bleh = thos.querySelector(".hintUI img")
-        Bleh.src = "img/Hint.png"
+function hintPress(elCell) { //What should I call something like this in-code?
+    if (gGame.megaHintMode == true) return 
+    if (gLightBulb) {
+        if (!elCell.classList.contains("REMOVAL")) return
+        var hintImage = elCell.querySelector(".hint-ui img")
+        hintImage.src = "img/Hint.png"
         gLightBulb = false
-        thos.classList.remove("REMOVAL")
+        elCell.classList.remove("REMOVAL")
         return
-    }   
-    thos.classList.add("REMOVAL")
-    var Bleh = thos.querySelector(".hintUI img")
-    Bleh.src = "img/HintBright.png"
-    gLightBulb = true
-   
-  
-    
-}
-function hintRemover(hintArray){
-    
-    for (var i = 0; i < hintArray.length; i++)
-    {
-       var elHintLocation = selector(hintArray[i].i, hintArray[i].j, ".tile-img img")
-       if (gBoard[hintArray[i].i][hintArray[i].j].isRevealed == true) continue
-       elHintLocation.src = "img/TileUnknown.png"
-   
     }
-    console.log(gBoard)
-    bulbRemoval()
-    
- 
+    elCell.classList.add("REMOVAL")
+    var hintImage = elCell.querySelector(".hint-ui img")
+    hintImage.src = "img/HintBright.png"
+    gLightBulb = true
+
+
+
 }
-function bulbRemoval(){
+function hintRemover(hintArray) {
+    console.log(hintArray)
+    for (var i = 0; i < hintArray.length; i++) {
+        var elHintLocation = selector(hintArray[i].i, hintArray[i].j, ".tile-img img")
+        if (gBoard[hintArray[i].i][hintArray[i].j].isRevealed === true) continue
+        elHintLocation.src = "img/TileUnknown.png"
+        gBoard[hintArray[i].i][hintArray[i].j].isRevealedByHint = false
+
+    }
+
+
+
+
+}
+function bulbRemoval() {
     const hintsButton = document.querySelectorAll(".hints button")
-    for (var i = 0; i < hintsButton.length; i++){
-        if (hintsButton[i].classList.contains("REMOVAL"))  hintsButton[i].remove()
-           
+    for (var i = 0; i < hintsButton.length; i++) {
+        if (hintsButton[i].classList.contains("REMOVAL")) hintsButton[i].remove()
+
     } gGame.hintsUsed++
 }
 
-function scoreChecker(score){
+function scoreChecker(score) {
+    const formattedScore = getFormatedTimePassed(score)
+    const boardScore = localStorage.getItem(`board${gLevel.SIZE}score`)
+    if (!boardScore) {
+        localStorage.setItem(`board${gLevel.SIZE}score`, score);
+    }
+    else {
+        if (boardScore < score) return
+        localStorage.setItem(`board${gLevel.SIZE}score`, score);
+    }
 
-const boardScore = localStorage.getItem(`board${gLevel.SIZE}score`)
-if (!boardScore){
-    localStorage.setItem(`board${gLevel.SIZE}score`, score);
+    uiUpdater(".best-score span", formattedScore)
+
 }
-else {
-    if (boardScore > score) return
-    localStorage.setItem(`board${gLevel.SIZE}score`, score);
+
+
+//1 - 0.TimePassed * Score It's just by the time
+
+
+function actualScoreCalculator() {
+    var tester = document.querySelector(".timer span")
+    var blester = String(tester.innerText)
+
+    var normalNumber = Number(blester.replace(" : ", ""));
+    // normalNumber = getFormatedTimePassed(normalNumber)
+
+    return normalNumber
+}
+function gameOverLossState(i, j) {
+    const rows = gBoard.length;
+    const cols = gBoard[0].length;
+    for (var i = 0; i < rows; i++) {
+        for (var j = 0; j < cols; j++) {
+            var revealAll = selector(i, j, ".tile-img")
+            if (revealAll) {
+                revealAll.remove()
+                // if (revealAll.classList.contains("mine")) replaceImage(elAllCell, i, j, BOOM_IMG)
+            }
+        }
+    }
+
+    if (gTimedOut) clearTimeout(gTimedOut)
+    clearInterval(gIntervalId);
+    showElement(".restart-container")
+    gSmileyState.innerText = "🤯"
+    gGame.isOn = false
+    actualScoreCalculator()
+}
+function getRandomSafeCell() {
+    if (gSafeClicks <= 0) return
+    if (!gFirstClick) {var safeClick = getRandEmptyLocation(gBoard); if (!safeClick) return}
+    if (gFirstClick === true) {
+
+        var safeClick = getRandomEmptyLocationForBegginingHint()
+        var elAllCell = SelectOnlyElement(safeClick.i, safeClick.j)
+        gBoard[safeClick.i][safeClick.j].isRevealedByHint = true
+        gExemptClick = { i: safeClick.i, j: safeClick.j }
+        renderBoardUnits(gBoard, elAllCell); gFirstClick = false;
+    }
+
+    elImageCell = selector(safeClick.i, safeClick.j, ".tile-img")
+
+
+    var singleHintArray = []
+
+    var currCell = gBoard[safeClick.i][safeClick.j]
+    singleHintArray.push(safeClick)
+    elImageCell = selector(safeClick.i, safeClick.j, ".tile-img img")
+    gBoard[safeClick.i][safeClick.j].isRevealedByHint = true
+    elImageCell.src = "img/TileNone.png"
+    gSafeClicks--
+    uiUpdater(".safe-click span", gSafeClicks)
+    setTimeout(() => { hintRemover(singleHintArray) }, 5000)
 }
 
-   uiUpdater(".bestScore span", score)
 
+function undoAction(){
+    if (!gUndoArray) return
+    for (var i = 0; i < gUndoArray.length; i++){
+        var elUndoCellLocation = selector(gUndoArray[i].i, gUndoArray[i].j, ".tile-img img")
+        elUndoCellLocation.src = "img/TileUnknown.png"
+        gBoard[gUndoArray[i].i][gUndoArray[i].j].isRevealed = false
+        gGame.revealedCount--
+
+    }
+    gUndoArray = []
+    uiUpdater(".revealed-count span", gGame.revealedCount)
+}
+function megaHint() {
+    gGame.megaHintMode = true
+    var welcomeChange = document.querySelector(".welcome")
+    welcomeChange.innerText = "MEGA MODE ACTIVE"
+}
+function megaHintReveal(gMegaHintArray){
+   gGame.megaHintMode = false
+    var hintArray = []
+   //Change the variable names later to yknow rows and cols
+   var towerFirst = gMegaHintArray[0].i
+   var lengthFirst = gMegaHintArray[0].j
+   var lengthSecond = gMegaHintArray[1].j
+   var towerSecond = gMegaHintArray[1].i
+   if (gFirstClick === true) {
+
+        var safeClick = getRandomEmptyLocationForBegginingHint()
+        var elAllCell = SelectOnlyElement(safeClick.i, safeClick.j)
+        gBoard[safeClick.i][safeClick.j].isRevealedByHint = true
+        gExemptClick = { i: safeClick.i, j: safeClick.j }
+        renderBoardUnits(gBoard, elAllCell); gFirstClick = false;
+    }
+     
+   if (lengthSecond < lengthFirst) {[lengthFirst, lengthSecond] = [lengthSecond, lengthFirst]}
+   if (towerFirst > towerSecond) {[towerFirst, towerSecond]= [towerSecond, towerFirst]}
+   for (var i = towerFirst; i <= towerSecond; i++){
+    for (var j = lengthFirst; j <= lengthSecond; j++){
+        var currCell = gBoard[i][j]
+        elCell = SelectOnlyElement(i, j)
+        // elImageCell = selector(i, j, ".tile-img img")
+        elImageCell = elCell.querySelector(".tile-img img")
+        elImageCell.src = "img/TileNone.png"
+        if (currCell.isRevealed === false) {hintArray.push({ i: i, j: j }); currCell.isRevealedByHint = true}
+    }
+   }
+   var elMegaHint = document.querySelector(".mega-hint")
+   elMegaHint.remove()
+   setTimeout(() => { hintRemover(hintArray) }, 5000) 
 }
 
 
-//1 - 0.TimePassed * Score
-function scoreCalculator(){
-    var score = 0
-    for (var i = 0; i < gBoard.length; i++){
-        for (var j = 0; j < gBoard[0].length; j++){
-            var currCell = gBoard[i][j] 
-            if (currCell.isRevealed == true) score += 1000
-            if ((currCell.isMine == true) && (currCell.isMarked == true)) score += 5000
+function mineExterminator() {
+      
+    var MineDeleteAmount = 3
+    if (gFirstClick === true) return
+    
+     if (mineArray.length < 3) MineDeleteAmount = mineArray.length
+    for (var i = 0; i < MineDeleteAmount; i++)
+    {
+        var randInt = getRandomIntInclusive(0, mineArray.length - 1)
+        var currCellPos = mineArray[randInt]
 
+        var currCell = gBoard[currCellPos.i][currCellPos.j]
+        var elCell = SelectOnlyElement(currCellPos.i, currCellPos.j)
+        var elTileImage = elCell.querySelector(".true-form img")
+        var elTileImagey = elCell.querySelector(".tile-img img")
+        elTileImagey.src = "img/TileMega.png"
+        elTileImage.src = "img/TileEmpty.png"
+        currCell.isMine = false
+        mineArray.splice(randInt, 1)
+
+        
+    }
+    setMinesNextToCount(gBoard)
+    reCalculator()
+
+
+}
+function reCalculator() {
+    for (var i = 0 ; i < gRecalculationArray.length; i++)
+    {
+        var currCellPos = gRecalculationArray[i]
+        var currCell = gBoard[currCellPos.i][currCellPos.j]
+        var elCell = SelectOnlyElement(currCellPos.i, currCellPos.j)
+        var elTileImage = elCell.querySelector(".true-form img")
+        if (currCell.minesAroundCount === 0) elTileImage.src = `img/TileEmpty.png`
+        else
+        elTileImage.src = `img/Tile${currCell.minesAroundCount}.png`
+    }
+    
+    
+}
+function manualMode() {
+    var lengthy = mineArray.length
+    if (gGame.gManualMode === true) {
+        gGame.gManualMode = false
+
+        
+        for (var i = 0; i <= lengthy- 1; i++) {
+
+           
+            var elCell = SelectOnlyElement(mineArray[i].i,mineArray[i].j)
+            undoMine(elCell, mineArray[i].i, mineArray[i].j)
+        }
+        mineArray = []
+         uiUpdater(".mode ", "NORMAL")
+        return
+    }
+    gGame.gManualMode = true
+     uiUpdater(".mode ", "MANUAL")
+    // gGame.isOn = true
+}
+function manualPlacement(elCell, i, j){
+        if (gBoard[i][j].isMine == true)  { undoMine(elCell, i, j); return }
+        gBoard[i][j].isMine = true
+        mineArray.push({ i:i, j: j })
+        var elImage = elCell.querySelector("span img")
+        elImage.src = `img/TileMega.png`
+        gLevel.MINES = mineArray.length
+        uiUpdater(".mine-amount span", gLevel.MINES)
+}
+
+
+function undoMine(elCell, i, j){
+    for (var k = 0; k < mineArray.length; k++) {
+          if ((mineArray[k].i === i) && (mineArray[k].j === j) || gGame.gManualMode == false) {
+            var currCell = gBoard[mineArray[k].i][mineArray[k].j]
+            
+            // if (gGame.manualMode == true) mineArray.splice(k, 1)
+            var elImage = elCell.querySelector("span img")
+            elImage.src = 'img/TileUnknown.png'
+
+            // return
+            if (gGame.manualMode == true) {mineArray.splice(k, 1); currCell.isMine = false; return}
+            else {gBoard[i][j].isMine = false ; return}
+            // if (gGame.gManualMode = true) return
         }
     }
     
-    score -= (gGame.hintsUsed * 750)
-    if (score < 0) score = 0
-    console.log(score)
-    alert(score)
-    return score
 }

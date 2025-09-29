@@ -9,29 +9,38 @@
 
 <body onload="onInit()">
     
-    <h1> Welcome to Yair Krakowskis  Attempt At Minesweeper!</h1>
+    <h1 class = "welcome"> Welcome to Yair Krakowskis  Attempt At Minesweeper!</h1>
     <button class = "smiley" onclick="restartGame()">😃</button>
-    <h3 class = "lifecounter">LIVES:  <span></span></h3>
-    <h3 class="markCount">UNITS MARKED: <span>0</span> </h3>
-    <h3 class = "mineAmount">AMOUNT OF MINES: <span></span></h3>
-    <div class = "gamenScore">
-    <div class = "hi"> whats up</div>
-    <div class = "statsBoard"><h2 class = "revealedCount">REVEALED: <span></span><span></span></h2><h2 class = "timer"><span>00 : 000</span></h2> <h2 class ="bestScore"><span>BEST SCORE OF CURRENT DIFFICULTY:</span> </h2></div>
-    <div class="difficulty-container">
-        <h4>Difficulty</h4>
-        <button onclick="setDifficulty(4,2)">16</button>
-        <button onclick="setDifficulty(8, 14)">64</button>
-        <button onclick="setDifficulty(12, 32)">144</button>
-    </div>
-    <div class = "hints">  
-    <button class = "hintUI" onclick="hintPress(this)"> <img src="img/Hint.png" ></button>
-    <button class = "hintUI" onclick="hintPress(this)"> <img src="img/Hint.png" ></button>
-    <button class = "hintUI" onclick="hintPress(this)"> <img src="img/Hint.png" ></button>
-    </div>
-    <div class = "restartcontainer">
-        <span class="restarttext">You GOT BLOWN UP!!!</span>
+    <h3 class = "life-counter">LIVES:  <span></span></h3>
+    <h3 class="mark-count">UNITS MARKED: <span>0</span> </h3>
+    <h3 class = "mine-amount">AMOUNT OF MINES: <span></span></h3>
+    <button onclick = "getRandomSafeCell()" class="safe-click"> Safe clicks left: <span></span></button>
+    <button onclick="undoAction()" class= "undo-button">Undo!</button>
+    <button onclick="megaHint()" class= "mega-hint">Mega hint!</button>
+    <button onclick="mineExterminator()" class= "mine-exterminator">Mine killer!</button>
+    <button class = "manual-mines" onclick = "manualMode()"> Manual!</button>   
+     <div class = "restart-container">
+        <span class="restart-text">You GOT BLOWN UP!!!</span>
         <button class = "restart" onclick="restartGame()">Restart?</button>
     </div>
+    <div class = "gamen-score">
+   
+    <div  class="difficulty-container">
+    <h4>Difficulty</h4>
+    <button onclick="setDifficulty(4,2)">16</button>
+    <button onclick="setDifficulty(8, 14)">64</button>
+    <button onclick="setDifficulty(12, 32)">144</button>
+    </div>
+    <h3 class="mode">MODE: <span>NORMAL</span></h3>
+    <div  oncontextmenu="return false;" class = "game-board"> whats up</div>
+    <div class = "stats-board"><h2 class = "revealed-count">REVEALED: <span></span><span></span></h2><h2 class = "timer"><span>00 : 000</span></h2> <h2 class ="best-score">BOARDS BEST TIME:<span></span> </h2></div>
+    
+    <div class = "hints">  
+    <button class = "hint-ui" onclick="hintPress(this)"> <img src="img/Hint.png" ></button>
+    <button class = "hint-ui" onclick="hintPress(this)"> <img src="img/Hint.png" ></button>
+    <button class = "hint-ui" onclick="hintPress(this)"> <img src="img/Hint.png" ></button>
+    </div>
+   
 <script src="js/sprint.js"></script>
 <script src="js/util.js"></script>
 </body>
