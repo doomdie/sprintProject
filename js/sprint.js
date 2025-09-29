@@ -74,7 +74,7 @@ gGame = {
 
 function onInit() {
     
-    gLevel.MINES = 2
+    // gLevel.MINES = 2
     gGame.gManualMode = false
     console.log(gLevel.MINES)
     
@@ -861,4 +861,5 @@ function undoMine(elCell, i, j){
         }
     }
     
+
 }
