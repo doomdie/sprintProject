@@ -26,20 +26,21 @@ const TILE_UNKNOWN = "img/TileUnknown.png"
 //Check every useless piece of code
 //Restructure all the codeeeee especially the image stuff
 
-
+//fix undo
 //ASK IN SLACK: IS TEXTCONTENT OR INNERTEXT PREFFERED???
 //How should the ordering of functions be again
-//Should the board render and the game start if like, a safety click is clicked before it even is
+
 //In megaclick should it be able to reveal the *Entire* board?
 
 //For the recalculator does it need to be  able to be pressed multiple times?
-//you added full scan, fixed the light bulbs and fixed the naming conventions of most of the stuff
-//FOR THE HINT BUTTON: IS IT OK TO LIKE, RE-USE CODE THAT I USED FOR THE HINT BUTTON..? 
-//Do megahint andd then clean the names up to make em less vague and clean your table name ffs
+//re-add tile fix it
+
+
 //Change the hard written text to variables.. Maybe? IMPORTANT
 //ask if you can have basically the entire lesson be like, about ui
+//
 //Should the ui in the style css reflect its position  in the page? Like its placement in the code should reflect that
-//i designed the way the disasppearing objects work is that they basically don't interfere if you actually click near that area- Is this fine?
+
 var mineArray
 var gTimedOut
 var gBoard
@@ -54,16 +55,21 @@ var gMegaHintArray
 var gRecalculationArray
 var gManualMode
 var gUndoIndex = 0
+var gLevel
+var gGame
+var gReAddHintTimeOut
 const gSmileyState = document.querySelector(".smiley") //Not good just having stuff out of code (functions)
-gLevel = {
-    SIZE: 4,
-    MINES: 2,
-    SAFECLICKS: 3
 
-}
-//How do i implement this into code  IMPORTANT
+//What about type casing in the ggame thing? SHoudl everything in it also start with g
 
-gGame = {
+function onInit(boardSIZE, MINES) {
+    gLevel = {
+        SIZE: boardSIZE,
+        MINES: MINES,
+        SAFECLICKS: 3
+
+    }
+    gGame = {
     isOn: false,
     isVictory: false,
     revealedCount: 0,
@@ -72,18 +78,16 @@ gGame = {
     megaHintMode: false,
     gManualMode: false
 }
-//What about type casing in the ggame thing? SHoudl everything in it also start with g
-
-function onInit() {
-
-    
+   
     gGame.gManualMode = false
-    
+
 
     gMegaHintArray = []
     mineArray = []
-   
+
     gRecalculationArray = []
+    var restartContainerText = document.querySelector(".restart-text")
+    restartContainerText.innerText = "YOU LOST!!!"
     const boardScoreFormat = getFormatedTimePassed(localStorage.getItem(`board${gLevel.SIZE}score`))
     uiUpdater(".best-score span", boardScoreFormat)
     gLightBulb = false
@@ -93,11 +97,14 @@ function onInit() {
     gGame.markedCount = 0
     gGame.revealedCount = 0
     gSafeClicks = gLevel.SAFECLICKS
+    showElement(".buttons-that-effect-game")
     clearInterval(gIntervalId);
+    clearTimeout(gReAddHintTimeOut)
     uiUpdater(".timer span", "00 : 000")
     uiUpdater(".mine-amount span", gLevel.MINES)
     uiUpdater(".revealed-count span", gGame.revealedCount)
     uiUpdater(".safe-click span", gSafeClicks)
+    bulbReset()
     gGame.isOn = true
     gSmileyState.innerText = "😃"
     gLives = 3
@@ -114,6 +121,8 @@ function onInit() {
     hideElement(".restart-container")
     hideElement(".undo-button")
     hideElement(".mine-exterminator")
+    showElement(".manual-mines")
+    
 
 
 }
@@ -167,14 +176,14 @@ function renderBoard(board) {
     elContainer.innerHTML = strHTML
 }
 
-//Second one for testing how to actually do this.. I think I should render all the board, make it all invisible and only set visibility on the path that is clicked
+
 function renderBoardUnits(board, elCell) {
     gRecalculationArray = []
     startTimer()
     hideElement(".manual-mines")
     showElement(".undo-button")
     showElement(".mine-exterminator")
-   
+
 
     if (gGame.gManualMode === false) {
         for (var i = 0; i < gLevel.MINES; i++) {
@@ -204,7 +213,7 @@ function renderBoardUnits(board, elCell) {
                 picName = `<img src="img/Tile${currCell.minesAroundCount}.png" class = "cell-image">`
                 gRecalculationArray.push({ i: i, j: j })
             }
-           
+
             strHTML += `<td  class  = "unit ${cellClass}" onmousedown = "handleCellClick(event, this, ${i},${j})"><span class ="true-form"> ${picName}</span><span class = "tile-img">${TILE_IMG}</span></td>`
 
         }
@@ -232,9 +241,7 @@ function renderBoardUnits(board, elCell) {
 function onCellClicked(elCell, i, j) {
 
     if (gGame.gManualMode === true && mineArray.length < 1) return
-    // else if (gGame.gManualMode === true) {gGame.gManualMode = false}
     if (gBoard[i][j].isBlow == true) return
-    // if (elCell.classList.contains("blow")) return
     if (gFirstClick === true) {
         gExemptClick = { i: i, j: j }
         renderBoardUnits(gBoard, gExemptClick)
@@ -244,18 +251,16 @@ function onCellClicked(elCell, i, j) {
         gGame.gManualMode = false; mineArray = []
         uiUpdater(".mode ", "NORMAL")
     }
-   
     if (gGame.megaHintMode === true) {
         gMegaHintArray.push({ i: i, j: j })
         var elCell = SelectOnlyElement(i, j)
         var elCellImage = elCell.querySelector(".tile-img img")
-      
+
         elCellImage.src = "img/TileMega.png"
-      
+
         if (gMegaHintArray.length >= 2) { megaHintReveal(gMegaHintArray) }
         return
     }
-
     if (gLightBulb === false) {
         if (gBoard[i][j].isMine === true) { loseLife(elCell, i, j); return }
     }
@@ -277,7 +282,7 @@ function onCellMarked(elCell, i, j) {
     }
     if (gBoard[i][j].isRevealed === true) return
     if (gBoard[i][j].isBlow === true) return
-    checkMines()
+   
 
 
     if (gBoard[i][j].isMarked === true) {
@@ -314,22 +319,6 @@ function onCellMarked(elCell, i, j) {
     gameOverCheck()
 }
 
-function checkMines() { //This is just very debugging stuff, won't be in the final 'release'
-    var flaggedMines = 0
-
-    for (var i = 0; i < mineArray.length; i++) {
-
-
-        var mineCell = gBoard[mineArray[i].i][mineArray[i].j]
-        if (mineCell.isMarked === true) flaggedMines++
-
-
-    }
-
-
-
-}
-
 
 
 
@@ -345,9 +334,8 @@ function expandReveal(board, elCell, i, j) {
         gGame.revealedCount++
         gBoard[i][j].isRevealed = true
         elTileReveal.src = TILE_NONE
-        // gUndoArray.push({ i: i, j: j }) //"img/TileNone.png"
-           undoClick.push({ i: i, j: j })
-           gUndoArray.push(undoClick)
+        undoClick.push({ i: i, j: j })
+        gUndoArray.push(undoClick)
         return
     }
     var emptySpotArray = []
@@ -386,10 +374,10 @@ function expandReveal(board, elCell, i, j) {
             }
 
         }
-        
+
     }
     gUndoArray.push(undoClick)
-    if (gLightBulb === true) { setTimeout(() => { readdTile(hintArray) }, 5000) }
+    if (gLightBulb === true) { gReAddHintTimeOut = setTimeout(() => { readdTile(hintArray) }, 5000) }
     bulbRemoval()
     if (gLightBulb === true) gLightBulb = false
 
@@ -464,7 +452,8 @@ function showElement(selector) {
     el.classList.remove('hide')
 }
 function restartGame() {
-    onInit()
+    clearTimeout(gReAddHintTimeOut)
+    onInit(gLevel.SIZE, gLevel.MINES)
 }
 function setDifficulty(boardSize, mineAmount) {
     gLevel.SIZE = boardSize
@@ -472,7 +461,7 @@ function setDifficulty(boardSize, mineAmount) {
 
 
 
-    onInit()
+    onInit(boardSize, mineAmount)
 }
 
 
@@ -509,7 +498,7 @@ function getClassName(position) { //Correct all the misleading names
 
 
 function handleCellClick(event, cell, i, j) {
-    
+
     uiUpdater(".revealed-count span", gGame.revealedCount)
 
     if (gGame.gManualMode == false) {
@@ -562,8 +551,9 @@ function SelectOnlyElement(i, j) {
 }
 function victoryScreen() //Ask in general should i put these in util? Or like.. since theyre so specific.. I dont know!!! Ughhh
 {
-
+    console.log(gBoard)
     if (gTimedOut) clearTimeout(gTimedOut)
+    hideElement(".buttons-that-effect-game")
     gGame.isOn = false
     showElement(".restart-container")
     var restartContainerText = document.querySelector(".restart-text")
@@ -613,14 +603,14 @@ function startTimer() {
 function hintPress(elCell) { //OG Name: hintPress
     if (gGame.megaHintMode == true) return
     if (gLightBulb) {
-        if (!elCell.classList.contains("REMOVAL")) return
+        if (!elCell.classList.contains("for-removal")) return
         var hintImage = elCell.querySelector(".hint-ui img")
         hintImage.src = "img/Hint.png"
         gLightBulb = false
-        elCell.classList.remove("REMOVAL")
+        elCell.classList.remove("for-removal")
         return
     }
-    elCell.classList.add("REMOVAL")
+    elCell.classList.add("for-removal")
     var hintImage = elCell.querySelector(".hint-ui img")
     hintImage.src = "img/HintBright.png"
     gLightBulb = true
@@ -642,22 +632,41 @@ function readdTile(hintArray) {
 
 
 }
-function bulbRemoval() {
+function bulbRemoval() { //Bulb remmoval
     const hintsButton = document.querySelectorAll(".hints button")
     for (var i = 0; i < hintsButton.length; i++) {
-        if (hintsButton[i].classList.contains("REMOVAL")) hintsButton[i].remove()
+        if (hintsButton[i].classList.contains("for-removal")) hintsButton[i].style.display = 'none'
+            // hintsButton[i].remove()
+
+    }
+}
+function bulbReset() {
+    
+    const hintsButton = document.querySelectorAll(".hints button")
+
+     
+    for (var i = 0; i < hintsButton.length; i++) {
+        var currentButton = hintsButton[i]
+        if (currentButton.classList.contains("for-removal")) currentButton.classList.remove("for-removal")
+            currentButton.style.display = ''
+        
+            var elImage = currentButton.querySelector("img")
+            elImage.src = "img/Hint.png"
+            
+            // hintsButton[i].remove()
 
     }
 }
 
 function scoreChecker(score) {
+  
     const formattedScore = getFormatedTimePassed(score)
     const boardScore = localStorage.getItem(`board${gLevel.SIZE}score`)
-    if (!boardScore) {
+    if (boardScore == 0) {
         localStorage.setItem(`board${gLevel.SIZE}score`, score);
     }
     else {
-        if (boardScore < score) return
+        if ((boardScore < score)) return
         localStorage.setItem(`board${gLevel.SIZE}score`, score);
     }
 
@@ -674,18 +683,19 @@ function actualScoreCalculator() {
     var formattedElTimerText = String(elTimerText.innerText)
 
     var normalNumber = Number(formattedElTimerText.replace(" : ", ""));
-   
+
     return normalNumber
 }
 function gameOverLossState(i, j) {
     const rows = gBoard.length;
     const cols = gBoard[0].length;
+    hideElement(".buttons-that-effect-game")
     for (var i = 0; i < rows; i++) {
         for (var j = 0; j < cols; j++) {
             var revealAll = selector(i, j, ".tile-img")
             if (revealAll) {
                 revealAll.remove()
-               
+
             }
         }
     }
@@ -721,27 +731,18 @@ function getRandomSafeCell() {
     elImageCell.src = TILE_NONE
     gSafeClicks--
     uiUpdater(".safe-click span", gSafeClicks)
-    setTimeout(() => { readdTile(singleHintArray) }, 5000)
+    gReAddHintTimeOut = setTimeout(() => { readdTile(singleHintArray) }, 5000)
 }
 
 
-// function undoAction() {
-//     if (!gUndoArray) return
-//     for (var i = 0; i < gUndoArray.length; i++) {
-//         // var elUndoCellLocation = selector(gUndoArray[i].i, gUndoArray[i].j, ".tile-img img")
-//         // elUndoCellLocation.src = "img/TileUnknown.png"
-//         // gBoard[gUndoArray[i].i][gUndoArray[i].j].isRevealed = false
-//         // gGame.revealedCount--
 
-//     // }
-//     // gUndoArray = []
-//    
-// } Decided to do an undo that can undo multiple times
 function undoAction() {
+   
     
     var gUndoIndex = gUndoArray.length - 1
+    if (gUndoIndex < 0) return
     for (var i = 0; i < gUndoArray[gUndoIndex].length; i++) {
-         var elUndoCellLocation = selector(gUndoArray[gUndoIndex][i].i, gUndoArray[gUndoIndex][i].j, ".tile-img img")
+        var elUndoCellLocation = selector(gUndoArray[gUndoIndex][i].i, gUndoArray[gUndoIndex][i].j, ".tile-img img")
         elUndoCellLocation.src = "img/TileUnknown.png"
         gBoard[gUndoArray[gUndoIndex][i].i][gUndoArray[gUndoIndex][i].j].isRevealed = false
         console.log(gBoard[gUndoArray[gUndoIndex][i].i][gUndoArray[gUndoIndex][i].j])
@@ -752,7 +753,7 @@ function undoAction() {
     console.log(gUndoArray)
     uiUpdater(".revealed-count span", gGame.revealedCount)
 }
-function megaHint() {
+function megaHintBtn() {
     gGame.megaHintMode = true
     var welcomeChange = document.querySelector(".welcome")
     welcomeChange.innerText = "MEGA MODE ACTIVE"
@@ -779,15 +780,17 @@ function megaHintReveal(gMegaHintArray) {
     for (var i = towerFirst; i <= towerSecond; i++) {
         for (var j = lengthFirst; j <= lengthSecond; j++) {
             var currCell = gBoard[i][j]
+            if (currCell.isMarked == true) {currCell.isMarked = false; gGame.markedCount--}
+            
             elCell = SelectOnlyElement(i, j)
-            // elImageCell = selector(i, j, ".tile-img img")
             elImageCell = elCell.querySelector(".tile-img img")
             elImageCell.src = TILE_NONE
             if (currCell.isRevealed === false) { hintArray.push({ i: i, j: j }); currCell.isRevealedByHint = true }
         }
     }
+    uiUpdater(".mark-count span", gGame.markedCount) //TO FIX: MAKE THE MARKED STAY WHERE THEY WERE!!!
     var elMegaHint = document.querySelector(".mega-hint")
-    elMegaHint.remove()
+    elMegaHint.style.display = 'none'
     setTimeout(() => { readdTile(hintArray) }, 5000)
 }
 
@@ -828,7 +831,7 @@ function reCalculator() {
         else
             elTileImage.src = `img/Tile${currCell.minesAroundCount}.png`
     }
-
+    gameOverCheck()
 
 }
 function manualMode() {
@@ -866,16 +869,15 @@ function undoMine(elCell, i, j) {
         if ((mineArray[k].i === i) && (mineArray[k].j === j) || gGame.gManualMode == false) {
             var currCell = gBoard[mineArray[k].i][mineArray[k].j]
 
-            // if (gGame.manualMode == true) mineArray.splice(k, 1)
+
             var elImage = elCell.querySelector("span img")
             elImage.src = 'img/TileUnknown.png'
 
-            // return
+
             if (gGame.manualMode == true) { mineArray.splice(k, 1); currCell.isMine = false; return }
             else { gBoard[i][j].isMine = false; return }
-            // if (gGame.gManualMode = true) return
+
         }
     }
-
 
 }

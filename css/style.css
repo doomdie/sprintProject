@@ -30,6 +30,10 @@
     height:500px;
     justify-content:center;
      border: 1px solid;
+     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     
     
    

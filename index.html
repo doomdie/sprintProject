@@ -7,18 +7,20 @@
     <link rel="stylesheet" href="css/style.css" />
 </head>
 
-<body onload="onInit()">
+<body onload="onInit(4, 2)">
     
     <h1 class = "welcome"> Welcome to Yair Krakowskis  Attempt At Minesweeper!</h1>
     <button class = "smiley" onclick="restartGame()">😃</button>
     <h3 class = "life-counter">LIVES:  <span></span></h3>
     <h3 class="mark-count">UNITS MARKED: <span>0</span> </h3>
     <h3 class = "mine-amount">AMOUNT OF MINES: <span></span></h3>
+    <div class = "buttons-that-effect-game">
     <button onclick = "getRandomSafeCell()" class="safe-click"> Safe clicks left: <span></span></button>
     <button onclick="undoAction()" class= "undo-button">Undo!</button>
-    <button onclick="megaHint()" class= "mega-hint">Mega hint!</button>
+    <button onclick="megaHintBtn()" class= "mega-hint">Mega hint!</button>
     <button onclick="mineExterminator()" class= "mine-exterminator">Mine killer!</button>
     <button class = "manual-mines" onclick = "manualMode()"> Manual!</button>   
+    </div>
      <div class = "restart-container">
         <span class="restart-text">You GOT BLOWN UP!!!</span>
         <button class = "restart" onclick="restartGame()">Restart?</button>
@@ -32,7 +34,7 @@
     <button onclick="setDifficulty(12, 32)">144</button>
     </div>
     <h3 class="mode">MODE: <span>NORMAL</span></h3>
-    <div  oncontextmenu="return false;" class = "game-board"> whats up</div>
+    <div  oncontextmenu="return false;" class = "game-board"> </div>
     <div class = "stats-board"><h2 class = "revealed-count">REVEALED: <span></span><span></span></h2><h2 class = "timer"><span>00 : 000</span></h2> <h2 class ="best-score">BOARDS BEST TIME:<span></span> </h2></div>
     
     <div class = "hints">  
